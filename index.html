@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brief Misi — Komunitas PBB Bukuagen</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --biru: #0B2D6E;
+    --biru-mid: #1A4BA8;
+    --biru-light: #2B6CB0;
+    --kuning: #FAC400;
+    --kuning-dark: #D4A500;
+    --kuning-pale: rgba(250,196,0,0.12);
+    --putih: #FFFFFF;
+    --abu-gelap: rgba(255,255,255,0.55);
+    --abu-border: rgba(255,255,255,0.10);
+    --card-bg: rgba(255,255,255,0.04);
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--biru);
+    color: var(--putih);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LOADING ── */
+  #loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--biru);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 100;
+    transition: opacity 0.4s;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(250,196,0,0.2);
+    border-top-color: var(--kuning);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-screen p { color: var(--abu-gelap); font-size: 14px; }
+
+  /* ── ERROR ── */
+  #error-screen {
+    display: none;
+    padding: 3rem 2rem;
+    text-align: center;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .error-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .error-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .error-msg { color: var(--abu-gelap); font-size: 0.9rem; line-height: 1.6; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(180deg, #0d2656 0%, var(--biru) 100%);
+    padding: 3rem 1.5rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--abu-border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(250,196,0,0.10) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--kuning);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: var(--biru);
+  }
+  .logo-text { font-size: 15px; font-weight: 700; color: var(--abu-gelap); }
+
+  .badge-month {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--kuning-pale);
+    border: 1px solid rgba(250,196,0,0.3);
+    color: var(--kuning);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 1.2rem;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--kuning);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hero h1 {
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+  }
+  .hero h1 span { color: var(--kuning); }
+  .hero-sub {
+    font-size: 0.9rem;
+    color: var(--abu-gelap);
+    margin-bottom: 2rem;
+  }
+  #month-label { color: var(--putih); font-weight: 600; }
+
+  /* ── LANE TABS ── */
+  .lane-tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-bottom: 0;
+  }
+  .lane-tab {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.6);
+    padding: 10px 20px;
+    border-radius: 30px 30px 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    border-bottom: none;
+    position: relative; bottom: -1px;
+  }
+  .lane-tab:hover {
+    background: rgba(250,196,0,0.1);
+    color: var(--kuning);
+    border-color: rgba(250,196,0,0.3);
+  }
+  .lane-tab.active {
+    background: var(--biru);
+    border-color: rgba(255,255,255,0.12);
+    border-bottom-color: var(--biru);
+    color: var(--kuning);
+  }
+  .lane-emoji { font-size: 1rem; }
+
+  /* ── CONTENT ── */
+  .content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+  }
+
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin: 2rem 0 0.75rem;
+  }
+
+  /* ── MISSION DESC ── */
+  .mission-card {
+    background: var(--card-bg);
+    border: 1px solid var(--abu-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+  }
+  .mission-card p {
+    color: rgba(255,255,255,0.82);
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+  .mission-card strong { color: var(--kuning); font-weight: 700; }
+
+  .lane-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 1.5rem 0 1.5rem;
+    border-bottom: 1px solid var(--abu-border);
+    margin-bottom: 0.5rem;
+  }
+  .lane-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+  }
+  .lane-title { font-size: 1.3rem; font-weight: 800; }
+  .lane-tagline { font-size: 0.82rem; color: var(--abu-gelap); margin-top: 3px; }
+
+  /* ── HASHTAGS ── */
+  .hashtag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hashtag-pill {
+    background: var(--kuning-pale);
+    border: 1px solid rgba(250,196,0,0.28);
+    color: var(--kuning);
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 7px 15px;
+    border-radius: 20px;
+    cursor: default;
+    transition: background 0.15s;
+  }
+  .hashtag-pill:hover { background: rgba(250,196,0,0.2); }
+
+  /* ── KEY MESSAGES ── */
+  .key-messages { display: flex; flex-direction: column; gap: 10px; }
+  .key-msg {
+    background: var(--card-bg);
+    border-left: 3px solid var(--kuning);
+    border-radius: 0 10px 10px 0;
+    padding: 11px 16px;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.6;
+  }
+
+  /* ── DEADLINE ── */
+  .deadline-banner {
+    background: var(--card-bg);
+    border: 1px solid var(--abu-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .deadline-label { font-size: 0.78rem; color: var(--abu-gelap); margin-bottom: 3px; }
+  .deadline-date { font-size: 1.05rem; font-weight: 700; }
+  .deadline-badge {
+    background: rgba(255,80,80,0.12);
+    border: 1px solid rgba(255,80,80,0.28);
+    color: #ff7575;
+    font-size: 10px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  /* ── SYARAT LIST ── */
+  .syarat-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .syarat-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 0.875rem; color: rgba(255,255,255,0.75); line-height: 1.55;
+  }
+  .syarat-list li::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%; background: var(--kuning);
+    flex-shrink: 0; margin-top: 8px;
+  }
+
+  /* ── REWARD ── */
+  .reward-box {
+    background: linear-gradient(135deg, rgba(250,196,0,0.1) 0%, rgba(250,196,0,0.04) 100%);
+    border: 1px solid rgba(250,196,0,0.25);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .reward-emoji { font-size: 2.2rem; flex-shrink: 0; }
+  .reward-amount { font-size: 1.7rem; font-weight: 800; color: var(--kuning); }
+  .reward-desc { font-size: 0.8rem; color: var(--abu-gelap); margin-top: 3px; line-height: 1.5; }
+
+  /* ── EMPTY / DEFAULT ── */
+  #default-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: rgba(255,255,255,0.25);
+    font-size: 0.9rem;
+  }
+  #default-state .big { font-size: 2.5rem; margin-bottom: 1rem; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.2);
+    border-top: 1px solid var(--abu-border);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 480px) {
+    .lane-tab { padding: 8px 14px; font-size: 0.78rem; }
+    .hero { padding: 2rem 1rem 0; }
+    .content { padding: 1.5rem 1rem 4rem; }
+    .reward-amount { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <p>Memuat brief misi...</p>
+</div>
+
+<!-- ERROR -->
+<div id="error-screen">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Gagal memuat brief</div>
+  <div class="error-msg" id="error-msg">Periksa koneksi internet kamu dan coba refresh halaman.</div>
+</div>
+
+<!-- MAIN -->
+<div id="main-content" style="display:none">
+
+  <div class="hero">
+    <div class="logo-row">
+      <div class="logo-mark">PBB</div>
+      <span class="logo-text">Komunitas Bukuagen</span>
+    </div>
+
+    <div class="badge-month">
+      <span class="badge-dot"></span>
+      Brief aktif · <span id="month-label">—</span>
+    </div>
+
+    <h1>Misi <span id="hero-bulan">Agustus</span><br>sudah tersedia</h1>
+    <p class="hero-sub" id="hero-sub">Pilih lane kamu di bawah untuk lihat brief lengkapnya</p>
+
+    <div class="lane-tabs" id="lane-tabs">
+      <button class="lane-tab" onclick="showLane('entertainer')" id="tab-entertainer">
+        <span class="lane-emoji">🎭</span> Entertainer
+      </button>
+      <button class="lane-tab" onclick="showLane('educator')" id="tab-educator">
+        <span class="lane-emoji">🎓</span> Educator
+      </button>
+      <button class="lane-tab" onclick="showLane('storyteller')" id="tab-storyteller">
+        <span class="lane-emoji">📖</span> Storyteller
+      </button>
+      <button class="lane-tab" onclick="showLane('trendjacker')" id="tab-trendjacker">
+        <span class="lane-emoji">🔥</span> Trendjacker
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div id="default-state">
+      <div class="big">👆</div>
+      Pilih lane kamu di atas untuk melihat brief misi bulan ini
+    </div>
+
+    <!-- PANEL TEMPLATE (diisi oleh JS) -->
+    <div class="panel" id="panel-entertainer"></div>
+    <div class="panel" id="panel-educator"></div>
+    <div class="panel" id="panel-storyteller"></div>
+    <div class="panel" id="panel-trendjacker"></div>
+
+  </div>
+
+  <div class="footer">
+    Komunitas PBB · BukuWarung · BukuAgen &nbsp;|&nbsp; Brief diperbarui otomatis setiap bulan
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  KONFIGURASI — edit 2 baris ini saja
+// ══════════════════════════════════════════════
+const SHEET_ID  = '178IiREZNPVng4p4Kv9yW9E40aKPBaseucJLTDQcps';
+const API_KEY   = 'AIzaSyDD8sKuxxKqzyEqDLbIzlTqlFQsPQ2lc5U';
+// ══════════════════════════════════════════════
+
+const LANES = ['entertainer','educator','storyteller','trendjacker'];
+const ICONS = { entertainer:'🎭', educator:'🎓', storyteller:'📖', trendjacker:'🔥' };
+const COLORS = {
+  entertainer: 'rgba(250,196,0,0.12)',
+  educator:    'rgba(59,130,246,0.12)',
+  storyteller: 'rgba(99,153,34,0.12)',
+  trendjacker: 'rgba(220,50,50,0.12)',
+};
+
+let data = {};
+
+async function loadData() {
+  const range  = encodeURIComponent('Brief!A1:Z50');
+  const url    = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
+
+  const res    = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json   = await res.json();
+  const rows   = json.values || [];
+
+  // Baris pertama = header, baris berikutnya = data per lane
+  // Format: Lane | Bulan | Deskripsi | Hashtag (pisah koma) | KM1 | KM2 | KM3 | Deadline | Syarat1 | Syarat2 | Syarat3 | Syarat4 | Syarat5 | Reward | RewardDesc
+  rows.slice(1).forEach(row => {
+    const lane = (row[0] || '').toLowerCase().trim();
+    if (!LANES.includes(lane)) return;
+    data[lane] = {
+      bulan:      row[1]  || '',
+      deskripsi:  row[2]  || '',
+      hashtags:   (row[3] || '').split(',').map(h => h.trim()).filter(Boolean),
+      km:         [row[4], row[5], row[6]].filter(Boolean),
+      deadline:   row[7]  || '',
+      syarat:     [row[8], row[9], row[10], row[11], row[12]].filter(Boolean),
+      reward:     row[13] || '',
+      rewardDesc: row[14] || '',
+    };
+  });
+}
+
+function buildPanel(lane) {
+  const d = data[lane];
+  if (!d) return `<div style="padding:3rem;text-align:center;color:rgba(255,255,255,0.3)">Data brief untuk lane ini belum tersedia.</div>`;
+
+  const hashtags = d.hashtags.map(h =>
+    `<span class="hashtag-pill">${h.startsWith('#') ? h : '#'+h}</span>`
+  ).join('');
+
+  const kms = d.km.map(k => `<div class="key-msg">${k}</div>`).join('');
+
+  const syarat = d.syarat.map(s => `<li>${s}</li>`).join('');
+
+  return `
+    <div class="lane-header">
+      <div class="lane-icon" style="background:${COLORS[lane]}">${ICONS[lane]}</div>
+      <div>
+        <div class="lane-title">${capitalize(lane)}</div>
+        <div class="lane-tagline">${tagline(lane)}</div>
+      </div>
+    </div>
+
+    <div class="section-label">Deskripsi Misi Bulan Ini</div>
+    <div class="mission-card"><p>${d.deskripsi}</p></div>
+
+    <div class="section-label">Hashtag Campaign Wajib</div>
+    <div class="hashtag-row">${hashtags}</div>
+
+    <div class="section-label">Key Message & Angle Konten</div>
+    <div class="key-messages">${kms}</div>
+
+    <div class="section-label">Deadline & Syarat Submission</div>
+    <div class="deadline-banner">
+      <div>
+        <div class="deadline-label">Batas akhir upload</div>
+        <div class="deadline-date">${d.deadline}</div>
+      </div>
+      <div class="deadline-badge">Deadline</div>
+    </div>
+    <div class="mission-card"><ul class="syarat-list">${syarat}</ul></div>
+
+    <div class="section-label">Reward & Komisi</div>
+    <div class="reward-box">
+      <div class="reward-emoji">🏆</div>
+      <div>
+        <div class="reward-amount">${d.reward}</div>
+        <div class="reward-desc">${d.rewardDesc}</div>
+      </div>
+    </div>
+  `;
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function tagline(lane) {
+  const map = {
+    entertainer: 'Bikin orang ketawa sambil ngerti produk',
+    educator:    'Bikin orang ngerti dan percaya',
+    storyteller: 'Bikin orang ngerasa tidak sendirian',
+    trendjacker: 'Bikin brand ikut ngomong di momen yang tepat',
+  };
+  return map[lane] || '';
+}
+
+function showLane(lane) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.lane-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('default-state').style.display = 'none';
+
+  const panel = document.getElementById('panel-' + lane);
+  if (!panel.innerHTML) panel.innerHTML = buildPanel(lane);
+  panel.classList.add('active');
+  document.getElementById('tab-' + lane).classList.add('active');
+}
+
+function updateHeroText() {
+  const bulan = Object.values(data)[0]?.bulan || '';
+  if (bulan) {
+    document.getElementById('month-label').textContent  = bulan;
+    document.getElementById('hero-bulan').textContent   = bulan;
+  }
+}
+
+async function init() {
+  try {
+    await loadData();
+    updateHeroText();
+    document.getElementById('loading-screen').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('main-content').style.display   = 'block';
+    }, 400);
+  } catch (err) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('error-screen').style.display   = 'block';
+    document.getElementById('error-msg').textContent =
+      'Gagal memuat data dari server. Pastikan Sheet ID dan API Key sudah benar, lalu refresh halaman. (' + err.message + ')';
+    console.error(err);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
